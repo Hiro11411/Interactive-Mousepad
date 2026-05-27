@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import type { Skin } from "../../types";
 
 interface SkinCardProps {
@@ -12,20 +12,30 @@ export const SkinCard = memo(function SkinCard({
   isActive,
   onSelect,
 }: SkinCardProps) {
+  const [pressed, setPressed] = useState(false);
+
   return (
     <button
       type="button"
       onClick={() => onSelect(skin.id)}
-      className={`text-left bg-[#111] border transition-colors duration-150
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      className={`group text-left bg-[#111] border transition-all duration-200
         ${isActive
-          ? "border-rose-600"
-          : "border-[#222] hover:border-[#333]"}`}
+          ? "border-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.25)]"
+          : "border-[#222] hover:border-[#444]"}
+        ${pressed ? "scale-[0.98]" : ""}`}
     >
       <div
-        className="w-full bg-[#0A0A0A] border-b border-[#1A1A1A]"
+        className="w-full bg-[#0A0A0A] border-b border-[#1A1A1A] overflow-hidden"
         style={{ aspectRatio: "16 / 9" }}
       >
-        {/* TODO(hiro): connect to Tauri backend — render skin thumbnail */}
+        <img
+          src={`/skins/${skin.id}/preview.png`}
+          alt={skin.name}
+          className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-80"
+        />
       </div>
       <div className="px-4 py-3 flex items-start justify-between gap-3">
         <div className="min-w-0">

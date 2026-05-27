@@ -4,7 +4,7 @@ import { Sidebar } from "./components/layout/Sidebar";
 import { StatusBar } from "./components/layout/StatusBar";
 import { DisplayPreview } from "./components/display/DisplayPreview";
 import { DisplayControls } from "./components/display/DisplayControls";
-import { LayerStack } from "./components/display/LayerStack";
+
 import { SkinBrowser } from "./components/skins/SkinBrowser";
 import { OverlayBrowser } from "./components/overlays/OverlayBrowser";
 import { LegendsEditor } from "./components/legends/LegendsEditor";
@@ -17,7 +17,7 @@ import { DeviceProvider } from "./context/DeviceContext";
 import { DisplayProvider } from "./context/DisplayContext";
 import { SkinProvider } from "./context/SkinContext";
 import { OverlayProvider } from "./context/OverlayContext";
-import { LayerProvider } from "./context/LayerContext";
+
 import { ProfileProvider } from "./context/ProfileContext";
 import { LogProvider } from "./context/LogContext";
 
@@ -28,7 +28,6 @@ const DisplayPage = memo(function DisplayPage() {
     <>
       <DisplayPreview />
       <DisplayControls />
-      <LayerStack />
     </>
   );
 });
@@ -74,9 +73,7 @@ export function App() {
             <ProfileProvider>
               <SkinProvider>
                 <OverlayProvider>
-                  <LayerProvider>
-                    <Shell />
-                  </LayerProvider>
+                  <Shell />
                 </OverlayProvider>
               </SkinProvider>
             </ProfileProvider>

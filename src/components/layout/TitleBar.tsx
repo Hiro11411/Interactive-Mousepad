@@ -1,15 +1,28 @@
-import { memo, useCallback } from "react";
-import { Minus, Square, X } from "lucide-react";
+import { memo, useCallback, useEffect, useState } from "react";
+import { Minus, Square, Copy, X, EyeOff } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export const TitleBar = memo(function TitleBar() {
+  const [maximized, setMaximized] = useState(false);
+
+  useEffect(() => {
+    const win = getCurrentWindow();
+    win.isMaximized().then(setMaximized).catch(() => {});
+  }, []);
+
   const handleMinimize = useCallback(() => {
-    // TODO(hiro): connect to Tauri backend — no-ops gracefully in browser preview
     getCurrentWindow().minimize().catch(() => {});
   }, []);
 
-  const handleMaximize = useCallback(() => {
-    getCurrentWindow().toggleMaximize().catch(() => {});
+  const handleMaximize = useCallback(async () => {
+    const win = getCurrentWindow();
+    await win.toggleMaximize().catch(() => {});
+    const isMax = await win.isMaximized().catch(() => false);
+    setMaximized(!!isMax);
+  }, []);
+
+  const handleHide = useCallback(() => {
+    getCurrentWindow().hide().catch(() => {});
   }, []);
 
   const handleClose = useCallback(() => {
@@ -18,11 +31,12 @@ export const TitleBar = memo(function TitleBar() {
 
   return (
     <div
+      data-tauri-drag-region
       className="drag-region flex items-center justify-between
         h-9 bg-[#0A0A0A] border-b border-[#222] select-none"
     >
       <div className="px-4 text-[11px] uppercase tracking-widest text-gray-400">
-        Mousepad Controller
+        The Sidepiece
       </div>
       <div className="no-drag flex h-full">
         <button
@@ -37,13 +51,27 @@ export const TitleBar = memo(function TitleBar() {
         </button>
         <button
           type="button"
+          onClick={handleHide}
+          className="w-11 h-full flex items-center justify-center
+            text-gray-500 hover:text-white hover:bg-[#1A1A1A]
+            transition-colors duration-150"
+          title="Hide to tray"
+        >
+          <EyeOff strokeWidth={1.5} size={14} />
+        </button>
+        <button
+          type="button"
           onClick={handleMaximize}
           className="w-11 h-full flex items-center justify-center
             text-gray-500 hover:text-white hover:bg-[#1A1A1A]
             transition-colors duration-150"
-          title="Maximize"
+          title={maximized ? "Restore" : "Maximize"}
         >
-          <Square strokeWidth={1.5} size={12} />
+          {maximized ? (
+            <Copy strokeWidth={1.5} size={12} />
+          ) : (
+            <Square strokeWidth={1.5} size={12} />
+          )}
         </button>
         <button
           type="button"
