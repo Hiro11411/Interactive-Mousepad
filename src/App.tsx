@@ -7,8 +7,7 @@ import { DisplayControls } from "./components/display/DisplayControls";
 
 import { SkinBrowser } from "./components/skins/SkinBrowser";
 import { OverlayBrowser } from "./components/overlays/OverlayBrowser";
-import { LegendsEditor } from "./components/legends/LegendsEditor";
-import { PluginList } from "./components/plugins/PluginList";
+
 import { ProfilesPage } from "./components/profiles/ProfilesPage";
 import { DevicePanel } from "./components/device/DevicePanel";
 import { BetaTestingArea } from "./components/testing/BetaTestingArea";
@@ -42,8 +41,7 @@ function PageRouter() {
       </div>
       {activePage === "skins" ? <SkinBrowser /> : null}
       {activePage === "overlays" ? <OverlayBrowser /> : null}
-      {activePage === "legends" ? <LegendsEditor /> : null}
-      {activePage === "plugins" ? <PluginList /> : null}
+
       {activePage === "profiles" ? <ProfilesPage /> : null}
       {activePage === "device" ? <DevicePanel /> : null}
       {activePage === "testing" ? <BetaTestingArea /> : null}

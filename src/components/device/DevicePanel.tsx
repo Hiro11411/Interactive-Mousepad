@@ -1,9 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../shared/Button";
 import { MockToggle } from "./MockToggle";
 import { useDevice } from "../../context/DeviceContext";
 import { useLogs } from "../../context/LogContext";
 import type { DeviceInfo } from "../../types";
+
+type ConnectionStatus = "unknown" | "connected" | "disconnected";
 
 const MOCK_INFO: DeviceInfo = {
   firmware: "1.0.0-mock",
@@ -24,19 +27,14 @@ const EMPTY_INFO: DeviceInfo = {
 };
 
 export function DevicePanel() {
-  const { connected, mock, port, setConnected, setPort } = useDevice();
+  const { connected, mock, port, setConnected } = useDevice();
   const { addLog } = useLogs();
-  const [scannedPorts] = useState<string[]>([]); // PLACEHOLDER — populated by backend later
+  const [checkStatus, setCheckStatus] = useState<ConnectionStatus>("unknown");
 
   const info = useMemo<DeviceInfo>(() => {
     if (connected || mock) return MOCK_INFO;
     return EMPTY_INFO;
   }, [connected, mock]);
-
-  const handleScan = useCallback(() => {
-    addLog("Scanning for devices...");
-    // TODO(hiro): connect to Tauri backend — invoke("list_serial_ports")
-  }, [addLog]);
 
   const handleConnect = useCallback(() => {
     if (connected) {
@@ -50,8 +48,39 @@ export function DevicePanel() {
     }
   }, [connected, port, setConnected, addLog]);
 
+  // TODO(hiro): implement connection check logic.
+  // - addLog("Checking mousepad connection...")
+  // - await invoke<boolean>("check_mousepad_connection")  // TODO(hiro): confirm command name
+  // - setCheckStatus("connected" | "disconnected") and addLog the outcome
+  // - wrap in try/catch and addLog the failure
+  const handleCheckConnection = useCallback(async () => {
+    // your logic here
+    void invoke;
+  }, [addLog]);
+
   const statusColor = connected ? "text-rose-600" : "text-gray-500";
   const statusLabel = connected ? "Connected" : "Not Connected";
+
+  const checkDot =
+    checkStatus === "connected"
+      ? "bg-green-500"
+      : checkStatus === "disconnected"
+        ? "bg-red-500"
+        : "bg-gray-700";
+
+  const checkText =
+    checkStatus === "connected"
+      ? "text-green-500"
+      : checkStatus === "disconnected"
+        ? "text-red-500"
+        : "text-gray-500";
+
+  const checkLabel =
+    checkStatus === "connected"
+      ? "Mousepad Connected"
+      : checkStatus === "disconnected"
+        ? "Mousepad Not Connected"
+        : "Not Checked";
 
   return (
     <div className="px-8 py-8 max-w-3xl space-y-6">
@@ -84,25 +113,23 @@ export function DevicePanel() {
               {statusLabel}
             </span>
           </div>
-          <div className="grid grid-cols-[1fr_auto] gap-3">
-            <select
-              value={port ?? ""}
-              onChange={(e) => setPort(e.target.value || null)}
-              className="border border-[#222] px-3 py-2 text-xs text-gray-300
-                hover:border-[#333] focus:border-rose-600
-                transition-colors duration-150 bg-[#0A0A0A]"
-            >
-              <option value="">No port selected</option>
-              {scannedPorts.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-            <Button onClick={handleScan}>Scan for Device</Button>
-          </div>
-          <div>
+
+          <div className="flex gap-2">
             <Button variant="primary" onClick={handleConnect}>
               {connected ? "Disconnect" : "Connect"}
             </Button>
+            <Button onClick={handleCheckConnection}>
+              Check Mousepad Connection
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className={`w-2 h-2 ${checkDot}`} />
+            <span
+              className={`text-[10px] uppercase tracking-widest ${checkText}`}
+            >
+              {checkLabel}
+            </span>
           </div>
         </div>
       </section>

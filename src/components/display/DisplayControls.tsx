@@ -51,19 +51,6 @@ export const DisplayControls = memo(function DisplayControls() {
     // TODO(hiro): connect to Tauri backend — { cmd: "set_display", on: !displayOn }
   }, [displayOn, setDisplayOn, addLog]);
 
-  const handleToggleHue = useCallback(() => {
-    setHueShift(!hueShift);
-    addLog(`Hue shift ${!hueShift ? "enabled" : "disabled"}`);
-    // TODO(hiro): connect to Tauri backend — { cmd: "set_param", key: "hue_shift", value: !hueShift }
-  }, [hueShift, setHueShift, addLog]);
-
-  const handleRotate = useCallback(() => {
-    const next = (rotation + 90) % 360;
-    setRotation(next);
-    addLog(`Rotation set to ${next}°`);
-    // TODO(hiro): connect to Tauri backend — { cmd: "set_param", key: "rotation", value: next }
-  }, [rotation, setRotation, addLog]);
-
   return (
     <section className="px-8 pb-6">
       <div className="border border-[#222] bg-[#111]">
@@ -90,13 +77,10 @@ export const DisplayControls = memo(function DisplayControls() {
             <Button active={displayOn} onClick={handleToggleDisplay}>
               {displayOn ? "Display On" : "Display Off"}
             </Button>
-            <Button active={hueShift} onClick={handleToggleHue}>
-              Hue Shift
-            </Button>
-            <Button onClick={handleRotate}>Rotate {rotation}°</Button>
           </div>
         </div>
       </div>
     </section>
   );
 });
+;;

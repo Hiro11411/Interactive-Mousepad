@@ -1,55 +1,42 @@
-use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::menu::{MenuBuilder, MenuItemBuilder};
-use tauri::Manager;
+use hidapi::HidApi;
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
-        .setup(|app| {
-            let show = MenuItemBuilder::with_id("show", "Show Window").build(app)?;
-            let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
-            let menu = MenuBuilder::new(app).items(&[&show, &quit]).build()?;
-
-            let icon = app
-                .default_window_icon()
-                .cloned()
-                .expect("failed to load default window icon");
-
-            TrayIconBuilder::new()
-                .icon(icon)
-                .menu(&menu)
-                .tooltip("Mousepad Controller")
-                .on_menu_event(|app, event| match event.id().as_ref() {
-                    "show" => {
-                        if let Some(win) = app.get_webview_window("main") {
-                            let _ = win.show();
-                            let _ = win.set_focus();
-                        }
-                    }
-                    "quit" => {
-                        app.exit(0);
-                    }
-                    _ => {}
-                })
-                .on_tray_icon_event(|tray, event| {
-                    if let TrayIconEvent::Click {
-                        button: MouseButton::Left,
-                        button_state: MouseButtonState::Up,
-                        ..
-                    } = event
-                    {
-                        let app = tray.app_handle();
-                        if let Some(win) = app.get_webview_window("main") {
-                            let _ = win.show();
-                            let _ = win.set_focus();
-                        }
-                    }
-                })
-                .build(app)?;
-
-            Ok(())
-        })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .invoke_handler(tauri::generate_handler![scan_devices_hid, scan_devices_serial]) //connected to invoke within frontend
+        .run(tauri::generate_context!())//config reader
+        .expect("error while running app");
 }
+
+#[tauri::command]
+//TAURI COMMAND RETURN TYPE VEC STR (TYPE: "NAME")
+//scan devices is only for HID applications right now
+fn scan_devices_hid() -> Vec<String> {
+    let api = HidApi::new().expect("failed to create HID API"); //catch err
+
+    let mut results: Vec<String> = Vec::new(); //list
+
+    for d in api.device_list() {
+    //scan and return list here
+    //print test case first
+    //formating, push into a vector str. so saved instead of delete unlike scan
+        results.push(format!
+            ("HID: {:04x}:{:04x}", 
+            d.vendor_id(), 
+            d.product_id()
+        ));
+    }
+    results //returning list
+}
+
+//turn this into, if cannot scan then enter false message in the future
+#[tauri::command]
+fn scan_devices_serial() -> Vec<String> {
+    let mut results: Vec<String> = Vec::new();
+    let ports = serialport::available_ports().expect("failed to list serial ports");
+    for p in ports {
+        results.push(p.port_name)
+    }
+    results
+}
+
+//for serial devices here

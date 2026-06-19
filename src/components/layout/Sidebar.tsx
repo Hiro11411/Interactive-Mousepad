@@ -3,8 +3,7 @@ import {
   Monitor,
   LayoutGrid,
   Layers,
-  Type,
-  Puzzle,
+
   User,
   Cpu,
   TerminalSquare,
@@ -28,8 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "display", label: "Display", icon: Monitor },
   { id: "skins", label: "Skins", icon: LayoutGrid },
   { id: "overlays", label: "Overlay", icon: Layers },
-  { id: "legends", label: "Legends", icon: Type },
-  { id: "plugins", label: "Plugins", icon: Puzzle },
+
   { id: "profiles", label: "Profile", icon: User },
   { id: "device", label: "Device", icon: Cpu },
   { id: "testing", label: "Testing", icon: TerminalSquare },

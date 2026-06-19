@@ -18,8 +18,7 @@ export const STORAGE_KEYS = {
   overlay: "mp.overlay",
   layer: "mp.layer",
   navigation: "mp.navigation",
-  legend: "mp.legend",
-  plugin: "mp.plugin",
+
   sidebar: "mp.sidebar",
 } as const;
 
@@ -29,8 +28,7 @@ export const PAGES = [
   "display",
   "skins",
   "overlays",
-  "legends",
-  "plugins",
+
   "profiles",
   "device",
   "testing",
