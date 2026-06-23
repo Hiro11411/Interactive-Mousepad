@@ -4,19 +4,10 @@ import { useDevice } from "../../context/DeviceContext";
 
 export const StatusBar = memo(function StatusBar() {
   const { activeProfile } = useProfiles();
-  const { connected, mock, firmware } = useDevice();
+  const { connected, firmware } = useDevice();
 
-  const deviceLabel = connected
-    ? "Connected"
-    : mock
-    ? "Simulation"
-    : "Not Connected";
-
-  const deviceColor = connected
-    ? "text-rose-600"
-    : mock
-    ? "text-gray-300"
-    : "text-gray-500";
+  const deviceLabel = connected ? "Connected" : "Not Connected";
+  const deviceColor = connected ? "text-rose-600" : "text-gray-500";
 
   return (
     <footer

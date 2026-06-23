@@ -6,14 +6,12 @@ import { loadFromStorage, usePersist } from "./persist";
 
 interface DeviceContextValue extends DeviceState {
   setConnected: (connected: boolean) => void;
-  setMock: (mock: boolean) => void;
   setPort: (port: string | null) => void;
   setFirmware: (firmware: string | null) => void;
 }
 
 const DEFAULT_STATE: DeviceState = {
   connected: false,
-  mock: false,
   port: null,
   firmware: null,
 };
@@ -31,10 +29,6 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, connected }));
   }, []);
 
-  const setMock = useCallback((mock: boolean) => {
-    setState((s) => ({ ...s, mock }));
-  }, []);
-
   const setPort = useCallback((port: string | null) => {
     setState((s) => ({ ...s, port }));
   }, []);
@@ -44,8 +38,8 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ ...state, setConnected, setMock, setPort, setFirmware }),
-    [state, setConnected, setMock, setPort, setFirmware],
+    () => ({ ...state, setConnected, setPort, setFirmware }),
+    [state, setConnected, setPort, setFirmware],
   );
 
   return <DeviceContext.Provider value={value}>{children}</DeviceContext.Provider>;

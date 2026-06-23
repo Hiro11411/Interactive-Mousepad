@@ -27,8 +27,7 @@ export const PERSIST_DEBOUNCE_MS = 500;
 export const PAGES = [
   "display",
   "skins",
-  "overlays",
-
+  "stats",
   "profiles",
   "device",
   "testing",

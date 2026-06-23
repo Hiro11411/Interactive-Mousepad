@@ -26,7 +26,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: "display", label: "Display", icon: Monitor },
   { id: "skins", label: "Skins", icon: LayoutGrid },
-  { id: "overlays", label: "Overlay", icon: Layers },
+  { id: "stats", label: "Stats", icon: Layers },
 
   { id: "profiles", label: "Profile", icon: User },
   { id: "device", label: "Device", icon: Cpu },

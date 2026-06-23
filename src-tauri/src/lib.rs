@@ -2,7 +2,13 @@ use hidapi::HidApi;
 
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![scan_devices_hid, scan_devices_serial]) //connected to invoke within frontend
+    .manage(DeviceConnection(Mutex::new(None)))
+        .invoke_handler(tauri::generate_handler![
+            scan_devices_hid, 
+            scan_devices_serial,
+            device_conected,
+            device_disconnected
+        ]) //connected to invoke within frontend
         .run(tauri::generate_context!())//config reader
         .expect("error while running app");
 }
@@ -10,8 +16,9 @@ pub fn run() {
 #[tauri::command]
 //TAURI COMMAND RETURN TYPE VEC STR (TYPE: "NAME")
 //scan devices is only for HID applications right now
-fn scan_devices_hid() -> Vec<String> {
-    let api = HidApi::new().expect("failed to create HID API"); //catch err
+fn scan_devices_hid() -> Result<Vec<String>, String> {
+    let api = HidApi::new().map_err(|e| e.to_string())?;
+    //err here asw
 
     let mut results: Vec<String> = Vec::new(); //list
 
@@ -25,7 +32,7 @@ fn scan_devices_hid() -> Vec<String> {
             d.product_id()
         ));
     }
-    results //returning list
+    Ok(results) //returning list
 }
 
 //turn this into, if cannot scan then enter false message in the future
@@ -39,4 +46,17 @@ fn scan_devices_serial() -> Vec<String> {
     results
 }
 
-//for serial devices here
+//for serial devices here 
+
+//connected
+#[tarui::command]
+//open serial port
+const { connected, port, setConnected, setPort} = useDevice();
+fn device_connected(port: String, state: tauri::State<DeviceConnection>) -> Result<(), String> {
+    let serial = serialport::new(&port)
+}
+
+//disconnected
+#[tarui::command]
+//close serial port here
+fn device_disconnected() 

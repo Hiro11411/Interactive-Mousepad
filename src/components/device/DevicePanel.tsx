@@ -1,50 +1,26 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../shared/Button";
-import { MockToggle } from "./MockToggle";
+import { DebugConsole } from "../testing/DebugConsole";
 import { useDevice } from "../../context/DeviceContext";
 import { useLogs } from "../../context/LogContext";
-import type { DeviceInfo } from "../../types";
 
 type ConnectionStatus = "unknown" | "connected" | "disconnected";
 
-const MOCK_INFO: DeviceInfo = {
-  firmware: "1.0.0-mock",
-  hardwareRev: "Rev A",
-  displayResolution: "1920 × 1080",
-  freeStorage: "12.4 GB",
-  temperature: "47 °C",
-  uptime: "00:24:18",
-};
-
-const EMPTY_INFO: DeviceInfo = {
-  firmware: "—",
-  hardwareRev: "—",
-  displayResolution: "—",
-  freeStorage: "—",
-  temperature: "—",
-  uptime: "—",
-};
-
 export function DevicePanel() {
-  const { connected, mock, port, setConnected } = useDevice();
+  const { connected, port, setConnected } = useDevice();
   const { addLog } = useLogs();
   const [checkStatus, setCheckStatus] = useState<ConnectionStatus>("unknown");
 
-  const info = useMemo<DeviceInfo>(() => {
-    if (connected || mock) return MOCK_INFO;
-    return EMPTY_INFO;
-  }, [connected, mock]);
-
-  const handleConnect = useCallback(() => {
+  const handleConnect = useCallback(async () => {
     if (connected) {
+      await invoke("device_connected")
       setConnected(false);
       addLog(`Disconnected from ${port ?? "device"}`);
-      // TODO(hiro): connect to Tauri backend — invoke("disconnect_device")
     } else {
+      await invoke("device_disconnected", { port })
       setConnected(true);
       addLog(`Connected${port ? ` to ${port}` : ""}`);
-      // TODO(hiro): connect to Tauri backend — invoke("connect_device", { port })
     }
   }, [connected, port, setConnected, addLog]);
 
@@ -53,9 +29,23 @@ export function DevicePanel() {
   // - await invoke<boolean>("check_mousepad_connection")  // TODO(hiro): confirm command name
   // - setCheckStatus("connected" | "disconnected") and addLog the outcome
   // - wrap in try/catch and addLog the failure
+
+//Handle check in logic
   const handleCheckConnection = useCallback(async () => {
-    // your logic here
-    void invoke;
+    addLog("Scanning for serial devices...");
+    try {
+      //only allowing for serial connection
+      const ports = await invoke<string[]>("scan_devices_serial") //if string called "scan_devices_serials" exist then
+      if (ports.length === 0) {
+        addLog("No serial devices found");
+        setCheckStatus("disconnected");
+      } else {
+        ports.forEach(p => addLog(p));
+      }
+    } catch (err) {
+      addLog(`Serial scan has failed due to ${err}`);
+      setCheckStatus("disconnected");
+    }
   }, [addLog]);
 
   const statusColor = connected ? "text-rose-600" : "text-gray-500";
@@ -134,33 +124,7 @@ export function DevicePanel() {
         </div>
       </section>
 
-      <section className="border border-[#222] bg-[#111]">
-        <header
-          className="px-5 py-3 border-b border-[#222]
-            text-[10px] uppercase tracking-widest text-gray-600"
-        >
-          Device Info
-        </header>
-        <dl className="px-5 py-5 grid grid-cols-2 gap-x-8 gap-y-4">
-          {[
-            ["Firmware", info.firmware],
-            ["Hardware Rev", info.hardwareRev],
-            ["Display Resolution", info.displayResolution],
-            ["Free Storage", info.freeStorage],
-            ["Temperature", info.temperature],
-            ["Uptime", info.uptime],
-          ].map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-4">
-              <dt className="text-[10px] uppercase tracking-widest text-gray-600">
-                {label}
-              </dt>
-              <dd className="text-xs text-gray-300 tabular-nums">{value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <MockToggle />
+      <DebugConsole />
     </div>
   );
 }

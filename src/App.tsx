@@ -6,7 +6,7 @@ import { DisplayPreview } from "./components/display/DisplayPreview";
 import { DisplayControls } from "./components/display/DisplayControls";
 
 import { SkinBrowser } from "./components/skins/SkinBrowser";
-import { OverlayBrowser } from "./components/overlays/OverlayBrowser";
+import { StatsPage } from "./components/stats/StatsPage";
 
 import { ProfilesPage } from "./components/profiles/ProfilesPage";
 import { DevicePanel } from "./components/device/DevicePanel";
@@ -15,7 +15,6 @@ import { NavigationProvider, useNavigation } from "./context/NavigationContext";
 import { DeviceProvider } from "./context/DeviceContext";
 import { DisplayProvider } from "./context/DisplayContext";
 import { SkinProvider } from "./context/SkinContext";
-import { OverlayProvider } from "./context/OverlayContext";
 
 import { ProfileProvider } from "./context/ProfileContext";
 import { LogProvider } from "./context/LogContext";
@@ -40,7 +39,7 @@ function PageRouter() {
         <DisplayPage />
       </div>
       {activePage === "skins" ? <SkinBrowser /> : null}
-      {activePage === "overlays" ? <OverlayBrowser /> : null}
+      {activePage === "stats" ? <StatsPage /> : null}
 
       {activePage === "profiles" ? <ProfilesPage /> : null}
       {activePage === "device" ? <DevicePanel /> : null}
@@ -70,9 +69,7 @@ export function App() {
           <DisplayProvider>
             <ProfileProvider>
               <SkinProvider>
-                <OverlayProvider>
-                  <Shell />
-                </OverlayProvider>
+                <Shell />
               </SkinProvider>
             </ProfileProvider>
           </DisplayProvider>

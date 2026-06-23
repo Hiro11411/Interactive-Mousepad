@@ -35,9 +35,6 @@ export function BetaTestingArea() {
     }
   }, [addLog])
 
-  //FIX HERE HERE HERE HERE HIRO TMR !!!!!!!!!!!
-  //GEM ALERT !!!!
-
   const handleScanSerial = useCallback(async () => { //serial class
     addLog("Scanning for devices")
     //invoke returns a promise so need to handle that
