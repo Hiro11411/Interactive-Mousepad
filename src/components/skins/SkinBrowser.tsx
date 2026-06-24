@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { SkinCard } from "./SkinCard";
 import { SkinFilters } from "./SkinFilters";
+import { SkinUpload } from "./SkinUpload";
 import type { SkinFilter } from "./SkinFilters";
 import { useSkins } from "../../context/SkinContext";
 import { useLogs } from "../../context/LogContext";
@@ -51,6 +52,10 @@ export function SkinBrowser() {
             onSelect={handleSelect}
           />
         ))}
+      </div>
+
+      <div className="mt-8">
+        <SkinUpload />
       </div>
     </div>
   );

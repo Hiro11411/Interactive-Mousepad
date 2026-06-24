@@ -1,11 +1,14 @@
 use hidapi::HidApi;
 use serialport::SerialPort;
-use std::sync::Mutex;
+use std::sync::Mutex; //mutex port, mark here for future reference and how it links back to each thread.
+use tauri::Manager;
+
 
 struct DeviceConnection(Mutex<Option<Box<dyn SerialPort>>>);
 
 pub fn run() {
     tauri::Builder::default()
+    .plugin(tauri_plugin_dialog::init())
     .manage(DeviceConnection(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             scan_devices_hid, 
@@ -17,12 +20,19 @@ pub fn run() {
         .expect("error while running app");
 }
 
+//================================================================================================
+//Device connection + Testing Area
+//================================================================================================
+
+//================================================================================================
+//For Hid class devices here
+//================================================================================================
 #[tauri::command]
 //TAURI COMMAND RETURN TYPE VEC STR (TYPE: "NAME")
 //scan devices is only for HID applications right now
 fn scan_devices_hid() -> Result<Vec<String>, String> {
     let api = HidApi::new().map_err(|e| e.to_string())?;
-    //err here asw
+    //err mapping
     let mut results: Vec<String> = Vec::new(); //list
     for d in api.device_list() {
     //scan and return list here
@@ -48,7 +58,9 @@ fn scan_devices_serial() -> Vec<String> {
     results
 }
 
-//for serial devices here 
+//================================================================================================
+//for serial devices here
+//================================================================================================
 
 //connected
 #[tauri::command]
@@ -67,9 +79,40 @@ fn device_connected(port: String, state: tauri::State<DeviceConnection>) -> Resu
 #[tauri::command]
 //close serial port here
 fn device_disconnected(state: tauri::State<DeviceConnection>) -> Result<(), String> {
-    *state.inner().0.lock().unwrap() = None;
+    *state.inner().0.lock().unwrap() = None; //mutex lock
     Ok(())
 }
 
+//================================================================================================
+//Skin saving
+//================================================================================================
+fn save_skin_media(app: tauri::AppHandle, filmename: String, data: String) -> Result<String, String> {
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string(()))?;
+    let media_dir = dir.join("skins");
+
+    if !media_dir.exists() {
+        println!("skins folder not found - creating it")
+        // creating a file if it doesn't exist
+        std::fs::create_dir_all(&media_dir).map_err(|e| e.to_string())?;
+    } else {
+        println!("skins folder already exists")
+    }
+
+    let bytes = /* base64 decode data */;
+    let path = media_dir.join(&filename)
+
+    //decode what frontend sent back into a real img
+    std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
+    //if ok change the path into string
+    Ok(path.to_string_lossy().to_string()) //returning save path
+}
+
+
+
+
+
+
+
 //handshake verifictation needed to be completed
 //sending recieving data to be worked on asw
+

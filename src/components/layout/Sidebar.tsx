@@ -35,7 +35,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export const Sidebar = memo(function Sidebar() {
   const { activePage, setActivePage } = useNavigation();
-  const { connected, mock } = useDevice();
+  const { connected } = useDevice();
   const [collapsed, setCollapsed] = useState<boolean>(() =>
     loadFromStorage<boolean>(STORAGE_KEYS.sidebar, false),
   );
@@ -90,12 +90,12 @@ export const Sidebar = memo(function Sidebar() {
         <div className="flex items-center gap-2">
           <span
             className={`w-1.5 h-1.5 ${
-              connected ? "bg-rose-600" : mock ? "bg-gray-400" : "bg-gray-700"
+              connected ? "bg-rose-600" : "bg-gray-700"
             }`}
           />
           {!collapsed ? (
             <span className="text-[11px] uppercase tracking-widest text-gray-500">
-              {connected ? "Connected" : mock ? "Mock" : "Offline"}
+              {connected ? "Connected" : "Offline"}
             </span>
           ) : null}
         </div>
