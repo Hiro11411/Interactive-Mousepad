@@ -5,4 +5,4 @@ dist-ssr
 src-tauri/target
 .env
 .env.local
-ls
+.claude/
