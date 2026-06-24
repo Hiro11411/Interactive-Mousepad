@@ -60,7 +60,7 @@ export function ProfilesPage() {
   );
 
   return (
-    <div className="px-8 py-8 grid gap-6 lg:grid-cols-[300px_1fr]">
+    <div className="px-8 py-8 grid gap-6 grid-cols-[300px_1fr]">
       <ProfileList
         profiles={profiles}
         selectedId={selectedId}

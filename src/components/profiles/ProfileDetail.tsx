@@ -2,7 +2,6 @@ import { memo, useCallback, useEffect, useState } from "react";
 import { Button } from "../shared/Button";
 import { Slider } from "../shared/Slider";
 import { useSkins } from "../../context/SkinContext";
-import { useOverlays } from "../../context/OverlayContext";
 import { useLogs } from "../../context/LogContext";
 import type { Profile } from "../../types";
 
@@ -26,7 +25,6 @@ export const ProfileDetail = memo(function ProfileDetail({
   canDelete,
 }: ProfileDetailProps) {
   const { allSkins } = useSkins();
-  const { overlays } = useOverlays();
   const { addLog } = useLogs();
 
   const [localBrightness, setLocalBrightness] = useState(profile.brightness);
@@ -38,8 +36,6 @@ export const ProfileDetail = memo(function ProfileDetail({
   const skinName = profile.skin
     ? allSkins.find((s) => s.id === profile.skin)?.name ?? profile.skin
     : "None";
-
-  const activeOverlays = overlays.filter((o) => o.enabled);
 
   const handleExport = useCallback(() => {
     const blob = new Blob([JSON.stringify(profile, null, 2)], {
@@ -92,16 +88,6 @@ export const ProfileDetail = memo(function ProfileDetail({
               Assigned Skin
             </div>
             <div className="text-xs text-gray-300">{skinName}</div>
-          </div>
-          <div className="space-y-1.5">
-            <div className="text-[10px] uppercase tracking-widest text-gray-600">
-              Active Overlays
-            </div>
-            <div className="text-xs text-gray-300">
-              {activeOverlays.length === 0
-                ? "None"
-                : activeOverlays.map((o) => o.id).join(", ")}
-            </div>
           </div>
         </div>
 

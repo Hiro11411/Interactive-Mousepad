@@ -1,4 +1,8 @@
 use hidapi::HidApi;
+use serialport::SerialPort;
+use std::sync::Mutex;
+
+struct DeviceConnection(Mutex<Option<Box<dyn SerialPort>>>);
 
 pub fn run() {
     tauri::Builder::default()
@@ -6,7 +10,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             scan_devices_hid, 
             scan_devices_serial,
-            device_conected,
+            device_connected,
             device_disconnected
         ]) //connected to invoke within frontend
         .run(tauri::generate_context!())//config reader
@@ -19,9 +23,7 @@ pub fn run() {
 fn scan_devices_hid() -> Result<Vec<String>, String> {
     let api = HidApi::new().map_err(|e| e.to_string())?;
     //err here asw
-
     let mut results: Vec<String> = Vec::new(); //list
-
     for d in api.device_list() {
     //scan and return list here
     //print test case first
@@ -39,7 +41,7 @@ fn scan_devices_hid() -> Result<Vec<String>, String> {
 #[tauri::command]
 fn scan_devices_serial() -> Vec<String> {
     let mut results: Vec<String> = Vec::new();
-    let ports = serialport::available_ports().expect("failed to list serial ports");
+    let ports = serialport::available_ports().unwrap_or_default();
     for p in ports {
         results.push(p.port_name)
     }
@@ -49,14 +51,22 @@ fn scan_devices_serial() -> Vec<String> {
 //for serial devices here 
 
 //connected
-#[tarui::command]
+#[tauri::command]
 //open serial port
-const { connected, port, setConnected, setPort} = useDevice();
 fn device_connected(port: String, state: tauri::State<DeviceConnection>) -> Result<(), String> {
-    let serial = serialport::new(&port)
+    let serial = serialport::new(&port, 115200)
+        .timeout(std::time::Duration::from_millis(1000))
+        .open()
+        .map_err(|e| e.to_string())?;
+        //if err return immedietly
+    *state.inner().0.lock().unwrap() = Some(serial); //* is
+    Ok(())
 }
 
 //disconnected
-#[tarui::command]
+#[tauri::command]
 //close serial port here
-fn device_disconnected() 
+fn device_disconnected(state: tauri::State<DeviceConnection>) -> Result<(), String> {
+    *state.inner().0.lock().unwrap() = None;
+    Ok(())
+}

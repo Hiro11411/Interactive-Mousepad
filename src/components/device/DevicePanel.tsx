@@ -8,34 +8,48 @@ import { useLogs } from "../../context/LogContext";
 type ConnectionStatus = "unknown" | "connected" | "disconnected";
 
 export function DevicePanel() {
-  const { connected, port, setConnected } = useDevice();
+  const { connected, port, setConnected, setPort } = useDevice();
   const { addLog } = useLogs();
   const [checkStatus, setCheckStatus] = useState<ConnectionStatus>("unknown");
 
   const handleConnect = useCallback(async () => {
     if (connected) {
-      await invoke("device_connected")
-      setConnected(false);
-      addLog(`Disconnected from ${port ?? "device"}`);
+      try {
+        await invoke("device_disconnected");
+        setConnected(false);
+        addLog("Disconnected");
+      } catch (err) {
+        addLog(`Disconnect failed: ${err}`);
+      }
     } else {
-      await invoke("device_disconnected", { port })
-      setConnected(true);
-      addLog(`Connected${port ? ` to ${port}` : ""}`);
+      try {
+        addLog("Scanning for serial devices...");
+        const ports = await invoke<string[]>("scan_devices_serial");
+        if (ports.length === 0) {
+          addLog("No serial devices found");
+          setCheckStatus("disconnected");
+          return;
+        }
+        const foundPort = ports[0];
+        setPort(foundPort);
+        addLog(`Found port: ${foundPort}`);
+        await invoke("device_connected", { port: foundPort });
+        setConnected(true);
+        addLog("Connected");
+        setCheckStatus("connected");
+      } catch (err) {
+        addLog(`Connection failed: ${err}`);
+        setCheckStatus("disconnected");
+      }
     }
-  }, [connected, port, setConnected, addLog]);
+  }, [connected, setConnected, setPort, addLog]);
 
-  // TODO(hiro): implement connection check logic.
-  // - addLog("Checking mousepad connection...")
-  // - await invoke<boolean>("check_mousepad_connection")  // TODO(hiro): confirm command name
-  // - setCheckStatus("connected" | "disconnected") and addLog the outcome
-  // - wrap in try/catch and addLog the failure
-
-//Handle check in logic
+  //Handle check in logic - kept for reference
   const handleCheckConnection = useCallback(async () => {
     addLog("Scanning for serial devices...");
     try {
       //only allowing for serial connection
-      const ports = await invoke<string[]>("scan_devices_serial") //if string called "scan_devices_serials" exist then
+      const ports = await invoke<string[]>("scan_devices_serial")
       if (ports.length === 0) {
         addLog("No serial devices found");
         setCheckStatus("disconnected");
@@ -107,9 +121,6 @@ export function DevicePanel() {
           <div className="flex gap-2">
             <Button variant="primary" onClick={handleConnect}>
               {connected ? "Disconnect" : "Connect"}
-            </Button>
-            <Button onClick={handleCheckConnection}>
-              Check Mousepad Connection
             </Button>
           </div>
 
