@@ -70,3 +70,6 @@ fn device_disconnected(state: tauri::State<DeviceConnection>) -> Result<(), Stri
     *state.inner().0.lock().unwrap() = None;
     Ok(())
 }
+
+//handshake verifictation needed to be completed
+//sending recieving data to be worked on asw

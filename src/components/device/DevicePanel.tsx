@@ -12,6 +12,7 @@ export function DevicePanel() {
   const { addLog } = useLogs();
   const [checkStatus, setCheckStatus] = useState<ConnectionStatus>("unknown");
 
+  //handle check connection + connection
   const handleConnect = useCallback(async () => {
     if (connected) {
       try {
@@ -43,24 +44,6 @@ export function DevicePanel() {
       }
     }
   }, [connected, setConnected, setPort, addLog]);
-
-  //Handle check in logic - kept for reference
-  const handleCheckConnection = useCallback(async () => {
-    addLog("Scanning for serial devices...");
-    try {
-      //only allowing for serial connection
-      const ports = await invoke<string[]>("scan_devices_serial")
-      if (ports.length === 0) {
-        addLog("No serial devices found");
-        setCheckStatus("disconnected");
-      } else {
-        ports.forEach(p => addLog(p));
-      }
-    } catch (err) {
-      addLog(`Serial scan has failed due to ${err}`);
-      setCheckStatus("disconnected");
-    }
-  }, [addLog]);
 
   const statusColor = connected ? "text-rose-600" : "text-gray-500";
   const statusLabel = connected ? "Connected" : "Not Connected";
