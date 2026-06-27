@@ -84,8 +84,9 @@ fn device_disconnected(state: tauri::State<DeviceConnection>) -> Result<(), Stri
 }
 
 //================================================================================================
-//Skin saving
+//Skin upload + saving
 //================================================================================================
+
 fn save_skin_media(app: tauri::AppHandle, filmename: String, data: String) -> Result<String, String> {
     let dir = app.path().app_data_dir().map_err(|e| e.to_string(()))?;
     let media_dir = dir.join("skins");

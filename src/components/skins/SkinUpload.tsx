@@ -8,6 +8,7 @@ import type { ChangeEvent, DragEvent } from "react";
 import { message } from "@tauri-apps/plugin-dialog";
 import { Button } from "../shared/Button";
 import { useLogs } from "../../context/LogContext";
+import { invoke } from "@tauri-apps/api/core"
 
 const MAX_MB = 25;
 const MAX_BYTES = MAX_MB * 1024 * 1024;
@@ -57,10 +58,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-// File -> base64 string (no data: prefix). Transport shape is not final —
-// TODO(hiro): I'll decide whether the backend wants base64, raw bytes, or a
-// temp file path; adjust this + the invoke payload accordingly.
-
+//encoding in base64 in order to decode
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -199,8 +197,16 @@ export function SkinUpload() {
       );
       addLog(`Saving: ${item.file.name}`);
       try {
+        //encoding the file to base64
         const base64 = await fileToBase64(item.file);
-        // TODO(hiro): call invoke("save_skin_media", payload). Payload shape +
+        //base64 encoding here then decode
+        //payload shape for you to decide yourself
+        const payload = {
+          filename: item.file.name,
+          data: base64,
+        }
+        const savedpath = await invoke<string>("save_skin_media", payload)
+        addLog(`Saved to ${savedpath}`)
         // transport (base64 vs raw bytes vs temp path) is yours to finalize.
         // import { invoke } from "@tauri-apps/api/core" when wiring this up.
         void base64;
@@ -210,6 +216,8 @@ export function SkinUpload() {
         //   kind: item.kind,
         //   data: base64,
         // });
+
+        //on sucess mark as saved, on error mark as failed
         setItems((prev) =>
           prev.map((p) => (p.id === item.id ? { ...p, status: "saved" } : p)),
         );
