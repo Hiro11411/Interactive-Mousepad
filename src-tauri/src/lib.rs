@@ -86,8 +86,7 @@ fn device_disconnected(state: tauri::State<DeviceConnection>) -> Result<(), Stri
 }
 
 //port checking if port is what we are looking for then accept otherwise reject
-//HIRO REMEMBER RIGHT FRONT END !!!!! 
-//WORK ON FRONT END NOW RIGHT AFTER REST
+
 const RPI_VENDOR_ID: u16 = 0X2E8A;
 
 #[tauri::command]
