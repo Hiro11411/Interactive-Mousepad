@@ -7,7 +7,7 @@ import { useSkins } from "../../context/SkinContext";
 import { useLogs } from "../../context/LogContext";
 
 export function SkinBrowser() {
-  const { allSkins, activeSkinId, setActiveSkinId } = useSkins();
+  const { allSkins, activeSkinId, setActiveSkinId, removeTestSkin } = useSkins();
   const { addLog } = useLogs();
   const [filter, setFilter] = useState<SkinFilter>("all");
 
@@ -23,6 +23,14 @@ export function SkinBrowser() {
       // TODO(hiro): connect to Tauri backend — { cmd: "set_skin", id }
     },
     [setActiveSkinId, addLog],
+  );
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      removeTestSkin(id);
+      addLog(`Skin deleted: ${id}`);
+    },
+    [removeTestSkin, addLog],
   );
 
   return (
@@ -50,6 +58,7 @@ export function SkinBrowser() {
             skin={skin}
             isActive={activeSkinId === skin.id}
             onSelect={handleSelect}
+            onDelete={handleDelete}
           />
         ))}
       </div>

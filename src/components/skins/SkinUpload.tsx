@@ -13,13 +13,18 @@ import { invoke } from "@tauri-apps/api/core"
 const MAX_MB = 25;
 const MAX_BYTES = MAX_MB * 1024 * 1024;
 
-const ACCEPT_ATTR = ".png,.jpg,.jpeg,.webp,.mp4";
+// Width and Height we use in terms of pixels, otherwise rej
+const REQUIRED_WIDTH = 1920; 
+const REQUIRED_HEIGHT = 1080;
+
+const ACCEPT_ATTR = ".png,.jpg,.jpeg,.webp,.mp4"; //reject anything else other than these file types
 
 const IMAGE_TYPES = new Set([
   "image/png",
   "image/jpeg",
   "image/webp",
 ]);
+
 const VIDEO_TYPES = new Set(["video/mp4"]);
 
 type MediaKind = "image" | "video";
@@ -76,6 +81,23 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+//get image dimensions of the imaage that is given
+function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);  
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: img.naturalWidth, height: img.naturalHeight }); //translation of pixels, used in logic below
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not read image dimensions"));
+    };
+    img.src = url;
+  });
+}
+
 export function SkinUpload() {
   const { addLog } = useLogs();
   const [items, setItems] = useState<MediaItem[]>([]);
@@ -110,7 +132,7 @@ export function SkinUpload() {
           rejected.push(reason);
           continue;
         }
-        const kind = classifyFile(file);
+        const kind = classifyFile(file); // detect file
         if (kind === null) continue; // already covered by rejectionReason
         accepted.push({
           id: `${file.name}-${file.size}-${file.lastModified}`,
@@ -189,35 +211,39 @@ export function SkinUpload() {
       addLog("No new media to save");
       return;
     }
-
     setSaving(true);
     for (const item of pending) {
       setItems((prev) =>
         prev.map((p) => (p.id === item.id ? { ...p, status: "saving" } : p)),
       );
       addLog(`Saving: ${item.file.name}`);
+
       try {
-        //encoding the file to base64
+        if (item.kind === "image") {
+          const { width, height } = await getImageDimensions(item.file);
+          if (width !== REQUIRED_WIDTH || height !== REQUIRED_HEIGHT) {
+            throw new Error(
+              `must be ${REQUIRED_WIDTH}×${REQUIRED_HEIGHT}px, got ${width}×${height}px`,
+            );
+          }
+        }
+
+        // TODO(hiro): videos (MP4) need a <video> element to read dimensions — add later.
+
+        //encoding the file to base64, backend decodes it back to raw bytes
         const base64 = await fileToBase64(item.file);
-        //base64 encoding here then decode
-        //payload shape for you to decide yourself
+
+        //encoding payload into base64
         const payload = {
           filename: item.file.name,
           data: base64,
-        }
-        const savedpath = await invoke<string>("save_skin_media", payload)
-        addLog(`Saved to ${savedpath}`)
-        // transport (base64 vs raw bytes vs temp path) is yours to finalize.
-        // import { invoke } from "@tauri-apps/api/core" when wiring this up.
-        void base64;
-        // await invoke("save_skin_media", {
-        //   filename: item.file.name,
-        //   mimeType: item.file.type,
-        //   kind: item.kind,
-        //   data: base64,
-        // });
+        };
 
-        //on sucess mark as saved, on error mark as failed
+        //sends to backend for backend to decode and run logic
+        const savedpath = await invoke<string>("save_skin_media", payload);
+        addLog(`Saved to ${savedpath}`);
+
+        //on err
         setItems((prev) =>
           prev.map((p) => (p.id === item.id ? { ...p, status: "saved" } : p)),
         );
@@ -257,7 +283,7 @@ export function SkinUpload() {
           </p>
           <Button onClick={handleBrowse}>Browse Files</Button>
           <p className="text-[10px] uppercase tracking-widest text-gray-600">
-            PNG · JPG · WEBP · MP4 — max {MAX_MB}MB each
+            PNG · JPG · WEBP · MP4 — {REQUIRED_WIDTH}×{REQUIRED_HEIGHT}px, max {MAX_MB}MB each
           </p>
           <input
             ref={inputRef}
