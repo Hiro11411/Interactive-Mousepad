@@ -97,6 +97,24 @@ function getImageDimensions(file: File): Promise<{ width: number; height: number
     img.src = url;
   });
 }
+//reject and resolve, call when suceed or call when fail
+//<video> needs src URL, so we map it to one
+function getVideoDimensions(file: File): Promise<{ width : number; height: number}> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video"); //categorized under video
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url); //when reject this is the logic that is suggested
+      resolve({ width: video.videoWidth, height: video.videoHeight});
+    };
+    video.onerror = () => { //err catch unable to render
+      URL.revokeObjectURL(url);
+      reject(new Error("Couldn't read video dimensions, or unable to render video"))
+    };
+    video.src = url;
+  })
+}
 
 export function SkinUpload() {
   const { addLog } = useLogs();
@@ -127,7 +145,7 @@ export function SkinUpload() {
       const rejected: string[] = [];
 
       for (const file of Array.from(fileList)) {
-        const reason = rejectionReason(file);
+        const reason = rejectionReason(file); //reject reason, if it exceeds certain file size then don't accept 
         if (reason) {
           rejected.push(reason);
           continue;
@@ -207,11 +225,13 @@ export function SkinUpload() {
     const pending = items.filter(
       (i) => i.status === "pending" || i.status === "failed",
     );
+
     if (pending.length === 0) {
       addLog("No new media to save");
       return;
     }
     setSaving(true);
+
     for (const item of pending) {
       setItems((prev) =>
         prev.map((p) => (p.id === item.id ? { ...p, status: "saving" } : p)),
@@ -219,17 +239,26 @@ export function SkinUpload() {
       addLog(`Saving: ${item.file.name}`);
 
       try {
+        //img logic
         if (item.kind === "image") {
           const { width, height } = await getImageDimensions(item.file);
           if (width !== REQUIRED_WIDTH || height !== REQUIRED_HEIGHT) {
             throw new Error(
-              `must be ${REQUIRED_WIDTH}×${REQUIRED_HEIGHT}px, got ${width}×${height}px`,
+              `IMG must be ${REQUIRED_WIDTH}×${REQUIRED_HEIGHT}px, got ${width}×${height}px`,
             );
           }
         }
 
-        // TODO(hiro): videos (MP4) need a <video> element to read dimensions — add later.
-
+        //video logic
+        if (item.kind === "video") {
+          const { width, height } = await getVideoDimensions(item.file);
+          if (width !== REQUIRED_WIDTH || height !== REQUIRED_HEIGHT) {
+            throw new Error(
+              `Video must be ${REQUIRED_WIDTH}×${REQUIRED_HEIGHT}px, got ${width}×${height}px`,
+            );
+          }
+        }
+  
         //encoding the file to base64, backend decodes it back to raw bytes
         const base64 = await fileToBase64(item.file);
 

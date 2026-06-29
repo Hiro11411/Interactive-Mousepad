@@ -35,7 +35,7 @@ export const TitleBar = memo(function TitleBar() {
       className="drag-region flex items-center justify-between
         h-9 bg-[#0A0A0A] border-b border-[#222] select-none"
     >
-      <div className="px-4 text-[11px] uppercase tracking-widest text-gray-400">
+      <div className="px-4 text-[11px] uppercase tracking-widest font-bold text-red-600">
         The Sidepiece
       </div>
       <div className="no-drag flex h-full">
