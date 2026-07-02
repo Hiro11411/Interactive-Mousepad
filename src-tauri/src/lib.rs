@@ -62,21 +62,35 @@ fn scan_devices_serial() -> Vec<String> {
 
 //================================================================================================
 //for serial devices here
-//================================================================================================
-
+//================================================================================================ 
 //connected
 #[tauri::command]
 //open serial port
 fn device_connected(port: String, state: tauri::State<DeviceConnection>) -> Result<(), String> {
-    let serial = serialport::new(&port, 115200)
+    let mut serial = serialport::new(&port, 115200)
         .timeout(std::time::Duration::from_millis(1000))
         .open()
-        .map_err(|e| e.to_string())?;
-        //if err return immedietly
-    *state.inner().0.lock().unwrap() = Some(serial); //* is
-    Ok(())
-}
+        .map_err(|e| e.to_string())?; // the ? statement is (if err return immedietly)
 
+    //after openign serial port checking serial verification.
+    serial.write_all(b"WHO_ARE_YOU\n").map_err(|e| e.to_string())?; //translated into non fancy numbers
+
+    //serial verification from python to rust (linux -> windows os)
+    let mut buf = [0u8; 64];
+    let n = serial.read(&mut buf).map_err(|e| e.to_string())?; //err mapping
+    //waits for mousepad to be
+    let reply = String::from_utf8_lossy(&buf[..n]); //ignore everythign exccept the first 8 slots in the array
+
+    //if it is mousepad yes and no conditions
+    if reply.trim() == "MOUSEPAD" {
+        println!("Correct Device verified");
+        state.inner().0.lock().unwrap() = Some(serial); // fix the problem for immedietly connected
+        Ok(())
+    } else {
+        Err("No device/wrong device verified, handshake verification failed".to_string()) //needs to go back to string, because
+        //if rust saves as &str to save memory.
+    }
+}
 //disconnected
 #[tauri::command]
 //close serial port here
